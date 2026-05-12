@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>נקודת איזון — כלי ניתוח חכם</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --purple-50: #FAF5FF;
+    --purple-100: #F3E8FF;
+    --purple-200: #E9D5FF;
+    --purple-500: #A855F7;
+    --purple-600: #9333EA;
+    --purple-700: #7E22CE;
+    --purple-800: #6B21A8;
+    --purple-900: #4C1D95;
+    --amber-50: #FFFBEB;
+    --amber-100: #FEF3C7;
+    --amber-200: #FDE68A;
+    --amber-300: #FCD34D;
+    --amber-400: #FBBF24;
+    --amber-500: #F59E0B;
+    --amber-600: #D97706;
+    --amber-700: #B45309;
+    --bg: #FAFAFA;
+    --card: #FFFFFF;
+    --text: #1F2937;
+    --text-muted: #6B7280;
+    --text-light: #9CA3AF;
+    --border: #E5E7EB;
+    --success: #10B981;
+    --success-bg: #ECFDF5;
+    --danger: #EF4444;
+    --danger-bg: #FEF2F2;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 4px 6px -1px rgba(124,58,237,0.08), 0 2px 4px -2px rgba(124,58,237,0.06);
+    --shadow-lg: 0 10px 25px -5px rgba(124,58,237,0.15), 0 8px 10px -6px rgba(124,58,237,0.10);
+    --shadow-amber: 0 10px 25px -5px rgba(245,158,11,0.20), 0 8px 10px -6px rgba(245,158,11,0.10);
+    --gradient: linear-gradient(135deg, var(--purple-700) 0%, var(--purple-600) 50%, var(--amber-500) 100%);
+    --gradient-soft: linear-gradient(135deg, var(--purple-50) 0%, var(--amber-50) 100%);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Heebo', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  /* ─── LOGIN GATE ─── */
+  .gate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gradient);
+    padding: 20px;
+  }
+  .gate-card {
+    background: var(--card);
+    border-radius: 24px;
+    padding: 48px 40px;
+    max-width: 420px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+  }
+  .gate-logo {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 24px;
+    background: var(--gradient);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    color: white;
+    box-shadow: var(--shadow-amber);
+  }
+  .gate-title {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    background: var(--gradient);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .gate-subtitle {
+    color: var(--text-muted);
+    margin-bottom: 32px;
+    font-size: 14px;
+  }
+  .gate-input {
+    width: 100%;
+    padding: 16px 20px;
+    border: 2px solid var(--purple-200);
+    border-radius: 12px;
+    font-size: 18px;
+    font-family: inherit;
+    text-align: center;
+    letter-spacing: 8px;
+    font-weight: 600;
+    color: var(--purple-800);
+    transition: all 0.2s;
+  }
+  .gate-input:focus {
+    outline: none;
+    border-color: var(--purple-600);
+    box-shadow: 0 0 0 4px var(--purple-100);
+  }
+  .gate-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 14px;
+    border: none;
+    background: var(--gradient);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    font-family: inherit;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: var(--shadow);
+  }
+  .gate-btn:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+  .gate-error {
+    color: var(--danger);
+    margin-top: 12px;
+    font-size: 14px;
+    min-height: 20px;
+    font-weight: 500;
+  }
+
+  /* ─── APP HEADER ─── */
+  .app { display: none; min-height: 100vh; }
+  .app.visible { display: block; }
+
+  .header {
+    background: var(--gradient);
+    padding: 24px 32px;
+    color: white;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 4px 12px rgba(124,58,237,0.20);
+  }
+  .header-inner {
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .brand-icon {
+    font-size: 32px;
+    background: rgba(255,255,255,0.2);
+    border-radius: 12px;
+    padding: 8px 12px;
+    backdrop-filter: blur(10px);
+  }
+  .brand-text h1 { font-size: 22px; font-weight: 700; }
+  .brand-text p { font-size: 13px; opacity: 0.9; font-weight: 400; }
+  .header-actions { display: flex; gap: 10px; }
+  .btn-ghost {
+    background: rgba(255,255,255,0.15);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-ghost:hover { background: rgba(255,255,255,0.25); }
+
+  /* ─── MAIN LAYOUT ─── */
+  .main {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px;
+  }
+  @media (max-width: 980px) {
+    .main { grid-template-columns: 1fr; padding: 16px; }
+    .header { padding: 16px; }
+  }
+
+  /* ─── PASTE PANEL (spans both columns) ─── */
+  .panel-paste {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, var(--purple-50), var(--amber-50));
+    border: 2px dashed var(--purple-300, #D8B4FE);
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+  }
+  .panel-paste h2 {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--purple-800);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel-paste .hint {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 14px;
+  }
+  .paste-area {
+    width: 100%;
+    min-height: 100px;
+    padding: 14px 16px;
+    border: 1px solid var(--purple-200);
+    border-radius: 12px;
+    font-family: 'Heebo', monospace;
+    font-size: 13px;
+    direction: rtl;
+    background: white;
+    resize: vertical;
+    transition: all 0.2s;
+  }
+  .paste-area:focus {
+    outline: none;
+    border-color: var(--purple-500);
+    box-shadow: 0 0 0 3px var(--purple-100);
+  }
+  .paste-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn-primary {
+    background: var(--gradient);
+    color: white;
+    padding: 10px 22px;
+    border: none;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: var(--shadow);
+  }
+  .btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow-lg); }
+  .btn-secondary {
+    background: white;
+    color: var(--purple-700);
+    padding: 10px 22px;
+    border: 1px solid var(--purple-200);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-secondary:hover { background: var(--purple-50); }
+  .parse-result {
+    margin-top: 14px;
+    padding: 12px 16px;
+    background: white;
+    border-radius: 10px;
+    font-size: 13px;
+    color: var(--purple-800);
+    display: none;
+  }
+  .parse-result.visible { display: block; }
+  .parse-result strong { color: var(--amber-700); }
+
+  /* ─── PANELS ─── */
+  .panel {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .panel h2 {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .panel .subtitle {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+  }
+  .panel-amber { border-top: 4px solid var(--amber-500); }
+  .panel-purple { border-top: 4px solid var(--purple-600); }
+
+  /* ─── FORMS ─── */
+  .group { margin-bottom: 20px; }
+  .group-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--purple-700);
+    margin-bottom: 10px;
+    padding-bottom: 6px;
+    border-bottom: 2px solid var(--purple-100);
+  }
+  .input-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+  .input-row label {
+    flex: 1;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .num-input {
+    width: 120px;
+    padding: 8px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 14px;
+    text-align: left;
+    direction: ltr;
+    background: var(--amber-50);
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .num-input:focus {
+    outline: none;
+    border-color: var(--amber-500);
+    box-shadow: 0 0 0 3px var(--amber-100);
+    background: white;
+  }
+  .num-input.small { width: 80px; }
+
+  /* ─── KPI CARDS ─── */
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .kpi {
+    background: var(--gradient-soft);
+    border-radius: 14px;
+    padding: 16px;
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+  }
+  .kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+  .kpi-label {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    margin-bottom: 6px;
+  }
+  .kpi-value {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--purple-800);
+    line-height: 1.1;
+  }
+  .kpi-value.success { color: var(--success); }
+  .kpi-value.danger { color: var(--danger); }
+  .kpi-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+  }
+  .kpi-hero {
+    grid-column: 1 / -1;
+    background: var(--gradient);
+    color: white;
+    border: none;
+  }
+  .kpi-hero .kpi-label { color: rgba(255,255,255,0.85); }
+  .kpi-hero .kpi-value { color: white; font-size: 36px; }
+  .kpi-hero .kpi-sub { color: rgba(255,255,255,0.85); font-size: 13px; }
+
+  /* ─── INSIGHTS ─── */
+  .insight {
+    background: linear-gradient(135deg, var(--amber-50), white);
+    border-right: 4px solid var(--amber-500);
+    padding: 16px 20px;
+    border-radius: 12px;
+    margin-top: 16px;
+  }
+  .insight-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--amber-700);
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .insight-body {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.7;
+  }
+  .insight-body div { margin-bottom: 4px; }
+  .insight.danger {
+    background: linear-gradient(135deg, var(--danger-bg), white);
+    border-right-color: var(--danger);
+  }
+  .insight.danger .insight-title { color: var(--danger); }
+  .insight.success {
+    background: linear-gradient(135deg, var(--success-bg), white);
+    border-right-color: var(--success);
+  }
+  .insight.success .insight-title { color: var(--success); }
+
+  /* ─── SENSITIVITY ─── */
+  .sensitivity-wrap {
+    grid-column: 1 / -1;
+  }
+  .sensitivity-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 4px;
+    margin-top: 12px;
+  }
+  .sensitivity-table th,
+  .sensitivity-table td {
+    padding: 10px 6px;
+    text-align: center;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .sensitivity-table th {
+    background: var(--purple-100);
+    color: var(--purple-800);
+    font-weight: 700;
+  }
+  .sensitivity-table td.label {
+    background: var(--amber-100);
+    color: var(--amber-800);
+    font-weight: 700;
+  }
+  .sensitivity-table td.cell-good {
+    background: var(--success-bg);
+    color: var(--success);
+    font-weight: 600;
+  }
+  .sensitivity-table td.cell-bad {
+    background: var(--danger-bg);
+    color: var(--danger);
+    font-weight: 600;
+  }
+  .sensitivity-table td.cell-current {
+    background: var(--gradient);
+    color: white;
+    font-weight: 800;
+    box-shadow: var(--shadow);
+  }
+
+  /* ─── COLLAPSIBLE ─── */
+  details {
+    margin-bottom: 10px;
+    background: var(--purple-50);
+    border-radius: 12px;
+    padding: 0;
+  }
+  details summary {
+    padding: 12px 16px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--purple-800);
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    user-select: none;
+  }
+  details summary::-webkit-details-marker { display: none; }
+  details summary::after {
+    content: '▼';
+    font-size: 10px;
+    transition: transform 0.2s;
+  }
+  details[open] summary::after { transform: rotate(180deg); }
+  details > div { padding: 8px 16px 16px; }
+
+  /* ─── PERIOD BREAKDOWN ─── */
+  .period-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+  }
+  .period-card {
+    background: var(--purple-50);
+    padding: 14px;
+    border-radius: 12px;
+    text-align: center;
+  }
+  .period-card .label {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+  }
+  .period-card .val {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--purple-800);
+  }
+  .period-card .txn {
+    font-size: 11px;
+    color: var(--amber-700);
+    margin-top: 2px;
+  }
+
+  /* utility */
+  .footer {
+    text-align: center;
+    padding: 32px;
+    color: var(--text-light);
+    font-size: 12px;
+  }
+  .toast {
+    position: fixed;
+    top: 80px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--success);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    box-shadow: var(--shadow-lg);
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    z-index: 200;
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .toast.visible { opacity: 1; }
+</style>
+</head>
+<body>
+
+<!-- ─── LOGIN GATE ─── -->
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <div class="gate-logo">📊</div>
+    <h1 class="gate-title">נקודת איזון</h1>
+    <p class="gate-subtitle">כלי ניתוח חכם לעסקים — נדרשת סיסמא לכניסה</p>
+    <input type="password" class="gate-input" id="pwd" placeholder="●●●●" maxlength="10" autofocus>
+    <button class="gate-btn" id="loginBtn">כניסה</button>
+    <div class="gate-error" id="pwdError"></div>
+  </div>
+</div>
+
+<!-- ─── APP ─── -->
+<div class="app" id="app">
+  <header class="header">
+    <div class="header-inner">
+      <div class="brand">
+        <div class="brand-icon">📊</div>
+        <div class="brand-text">
+          <h1>נקודת איזון — Break-Even Insights</h1>
+          <p>כלי ניתוח חכם לתכנון פיננסי</p>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button class="btn-ghost" onclick="resetAll()">איפוס</button>
+        <button class="btn-ghost" onclick="exportJSON()">ייצוא נתונים</button>
+        <button class="btn-ghost" onclick="logout()">יציאה</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <!-- ── PASTE PANEL ── -->
+    <section class="panel-paste">
+      <h2>⚡ הזרקת דוח רווח והפסד</h2>
+      <p class="hint">העתק טקסט מדוח רווח והפסד (PDF, Excel, וורד) — והמערכת תזהה אוטומטית את הסעיפים והסכומים.</p>
+      <textarea class="paste-area" id="pasteArea" placeholder="הדבק כאן את הדוח...
+
+דוגמה:
+מכירות         220,000
+מלאי פתיחה      30,000
+קניות           72,000
+עבודות חוץ      56,000
+מלאי סגירה      20,000
+שכ&quot;ד           30,000
+חשמל ומים      10,000
+ארנונה          6,000"></textarea>
+      <div class="paste-actions">
+        <button class="btn-primary" onclick="parsePaste()">🔍 זהה ומלא נתונים</button>
+        <button class="btn-secondary" onclick="clearPaste()">נקה</button>
+        <button class="btn-secondary" onclick="loadDemo()">טען דוגמה</button>
+      </div>
+      <div class="parse-result" id="parseResult"></div>
+    </section>
+
+    <!-- ── INPUTS COLUMN ── -->
+    <section class="panel panel-purple">
+      <h2>📝 הזנת נתונים</h2>
+      <p class="subtitle">תאים בצבע ענברי = קלט. שינוי כל שדה מעדכן את הדשבורד מיד.</p>
+
+      <div class="group">
+        <div class="group-title">פרמטרים</div>
+        <div class="input-row">
+          <label>תקופת הדוח (חודשים)</label>
+          <input type="number" class="num-input small" id="months" value="5" min="1" max="24">
+        </div>
+        <div class="input-row">
+          <label>מע"מ (%)</label>
+          <input type="number" class="num-input small" id="vat" value="18" min="0" max="100" step="0.1">
+        </div>
+      </div>
+
+      <div class="group">
+        <div class="group-title">מכירות</div>
+        <div class="input-row">
+          <label>מכירות לתקופה</label>
+          <input type="number" class="num-input" id="revenue" value="220000">
+        </div>
+      </div>
+
+      <details open>
+        <summary>עלות מכר</summary>
+        <div>
+          <div class="input-row"><label>מלאי פתיחה</label><input type="number" class="num-input" id="cogs_opening" value="30000"></div>
+          <div class="input-row"><label>קניות</label><input type="number" class="num-input" id="cogs_purchases" value="72000"></div>
+          <div class="input-row"><label>עבודות חוץ</label><input type="number" class="num-input" id="cogs_outsourcing" value="56000"></div>
+          <div class="input-row"><label>עלות עובדי יצור</label><input type="number" class="num-input" id="cogs_labor" value="0"></div>
+          <div class="input-row"><label>שונות</label><input type="number" class="num-input" id="cogs_other" value="0"></div>
+          <div class="input-row"><label>מלאי סגירה (חיובי — יופחת)</label><input type="number" class="num-input" id="cogs_closing" value="20000"></div>
+        </div>
+      </details>
+
+      <details open>
+        <summary>הוצאות קבועות</summary>
+        <div>
+          <div class="input-row"><label>שכ"ד</label><input type="number" class="num-input" id="fix_rent" value="30000"></div>
+          <div class="input-row"><label>אחזקה וניקיון</label><input type="number" class="num-input" id="fix_cleaning" value="8000"></div>
+          <div class="input-row"><label>אחזקת רכב</label><input type="number" class="num-input" id="fix_vehicle" value="21000"></div>
+          <div class="input-row"><label>ארנונה</label><input type="number" class="num-input" id="fix_property" value="6000"></div>
+          <div class="input-row"><label>דואר ותקשורת</label><input type="number" class="num-input" id="fix_phone" value="2000"></div>
+          <div class="input-row"><label>חשמל ומים</label><input type="number" class="num-input" id="fix_utilities" value="10000"></div>
+          <div class="input-row"><label>משפטיות</label><input type="number" class="num-input" id="fix_legal" value="30000"></div>
+          <div class="input-row"><label>משרדיות</label><input type="number" class="num-input" id="fix_office" value="2500"></div>
+          <div class="input-row"><label>מומחים</label><input type="number" class="num-input" id="fix_experts" value="2000"></div>
+          <div class="input-row"><label>מיסים ואגרות</label><input type="number" class="num-input" id="fix_taxes" value="2000"></div>
+          <div class="input-row"><label>פרסום</label><input type="number" class="num-input" id="fix_marketing" value="2500"></div>
+          <div class="input-row"><label>שירותים מקצועיים</label><input type="number" class="num-input" id="fix_professional" value="1000"></div>
+          <div class="input-row"><label>שכר עובדים</label><input type="number" class="num-input" id="fix_salary_emp" value="0"></div>
+          <div class="input-row"><label>שכר הנהלה</label><input type="number" class="num-input" id="fix_salary_mgmt" value="0"></div>
+          <div class="input-row"><label>ביטוח</label><input type="number" class="num-input" id="fix_insurance" value="0"></div>
+          <div class="input-row"><label>מימון</label><input type="number" class="num-input" id="fix_finance" value="0"></div>
+          <div class="input-row"><label>שונות</label><input type="number" class="num-input" id="fix_other" value="0"></div>
+        </div>
+      </details>
+
+      <details>
+        <summary>תכנון יעד</summary>
+        <div>
+          <div class="input-row"><label>רווח חודשי נדרש לפני מס</label><input type="number" class="num-input" id="target_profit" value="0"></div>
+          <div class="input-row"><label>תוספת בונוס לעובדים</label><input type="number" class="num-input" id="target_bonus" value="0"></div>
+          <div class="input-row"><label>תוספת הוצאה/שכירות</label><input type="number" class="num-input" id="target_added" value="0"></div>
+        </div>
+      </details>
+
+      <details>
+        <summary>תקופה ועסקאות</summary>
+        <div>
+          <div class="input-row"><label>שבועות בחודש</label><input type="number" class="num-input small" id="weeks" value="4"></div>
+          <div class="input-row"><label>ימי עבודה בחודש</label><input type="number" class="num-input small" id="workdays" value="22"></div>
+          <div class="input-row"><label>מחיר ממוצע לעסקה</label><input type="number" class="num-input" id="avgprice" value="530"></div>
+        </div>
+      </details>
+    </section>
+
+    <!-- ── RESULTS COLUMN ── -->
+    <section class="panel panel-amber">
+      <h2>📊 דשבורד תוצאות</h2>
+      <p class="subtitle">המדדים מתעדכנים בזמן אמת לפי הנתונים משמאל.</p>
+
+      <div class="kpi-grid">
+        <div class="kpi kpi-hero">
+          <div class="kpi-label">נקודת איזון חודשית</div>
+          <div class="kpi-value" id="kpi_be">—</div>
+          <div class="kpi-sub" id="kpi_be_sub">המחזור המינימלי להימנע מהפסד</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">מחזור חודשי נוכחי</div>
+          <div class="kpi-value" id="kpi_rev">—</div>
+          <div class="kpi-sub">לפי הדוח שהזנת</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">פער מנקודת האיזון</div>
+          <div class="kpi-value" id="kpi_gap">—</div>
+          <div class="kpi-sub" id="kpi_gap_sub">—</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">אחוז רווח גולמי</div>
+          <div class="kpi-value" id="kpi_gp">—</div>
+          <div class="kpi-sub">מתוך כל שקל מכירה</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-label">תקבול חודשי כולל מע"מ</div>
+          <div class="kpi-value" id="kpi_vat">—</div>
+          <div class="kpi-sub">מה שאמור להיכנס לחשבון</div>
+        </div>
+      </div>
+
+      <div class="insight" id="insight1">
+        <div class="insight-title">💡 INSIGHT — מה אומרים המספרים שלך</div>
+        <div class="insight-body" id="insight1_body"></div>
+      </div>
+
+      <div class="group" style="margin-top:24px;">
+        <div class="group-title">נקודת איזון לפי תקופה</div>
+        <div class="period-grid">
+          <div class="period-card">
+            <div class="label">חודשי</div>
+            <div class="val" id="per_m">—</div>
+            <div class="txn" id="per_m_txn">— עסקאות</div>
+          </div>
+          <div class="period-card">
+            <div class="label">שבועי</div>
+            <div class="val" id="per_w">—</div>
+            <div class="txn" id="per_w_txn">— עסקאות</div>
+          </div>
+          <div class="period-card">
+            <div class="label">יומי</div>
+            <div class="val" id="per_d">—</div>
+            <div class="txn" id="per_d_txn">— עסקאות</div>
+          </div>
+        </div>
+        <div class="insight" id="insight2">
+          <div class="insight-title">💡 INSIGHT — תרגום למספר יומי</div>
+          <div class="insight-body" id="insight2_body"></div>
+        </div>
+      </div>
+
+      <div class="group" style="margin-top:24px;">
+        <div class="group-title">תכנון יעד רווח</div>
+        <div class="kpi" style="background:var(--gradient-soft);">
+          <div class="kpi-label">מחזור חודשי נדרש להשגת היעד</div>
+          <div class="kpi-value" style="font-size:32px;" id="kpi_target">—</div>
+          <div class="kpi-sub" id="kpi_target_sub">—</div>
+        </div>
+        <div class="insight" id="insight3">
+          <div class="insight-title">💡 INSIGHT — תרגום ליעד מעשי</div>
+          <div class="insight-body" id="insight3_body"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── SENSITIVITY (full width) ── -->
+    <section class="panel panel-purple sensitivity-wrap">
+      <h2>🎯 ניתוח רגישות</h2>
+      <p class="subtitle">איך נקודת האיזון משתנה לפי שינוי בהוצאות הקבועות (שורות) ובאחוז הרווח הגולמי (עמודות). ירוק = נקודת איזון יורדת (טוב), אדום = עולה.</p>
+      <table class="sensitivity-table" id="sensTable"></table>
+      <div class="insight" id="insight4">
+        <div class="insight-title">💡 INSIGHT — איפה הכי משתלם להשקיע אנרגיה</div>
+        <div class="insight-body" id="insight4_body"></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="footer">Break-Even Insights v1.0 • נוצר ב-2026 • כל הסכומים ללא מע"מ</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── PASSWORD GATE ───
+const PASSWORD = '2468';
+const gate = document.getElementById('gate');
+const app = document.getElementById('app');
+const pwdInput = document.getElementById('pwd');
+const pwdError = document.getElementById('pwdError');
+
+function tryLogin() {
+  if (pwdInput.value === PASSWORD) {
+    sessionStorage.setItem('be_auth', '1');
+    gate.style.display = 'none';
+    app.classList.add('visible');
+    compute();
+  } else {
+    pwdError.textContent = 'סיסמא שגויה — נסה שוב';
+    pwdInput.value = '';
+    pwdInput.focus();
+    setTimeout(() => pwdError.textContent = '', 2500);
+  }
+}
+document.getElementById('loginBtn').addEventListener('click', tryLogin);
+pwdInput.addEventListener('keydown', e => { if (e.key === 'Enter') tryLogin(); });
+
+if (sessionStorage.getItem('be_auth') === '1') {
+  gate.style.display = 'none';
+  app.classList.add('visible');
+}
+
+function logout() {
+  sessionStorage.removeItem('be_auth');
+  location.reload();
+}
+
+// ─── TOAST ───
+const toast = document.getElementById('toast');
+function showToast(msg, color = 'var(--success)') {
+  toast.textContent = msg;
+  toast.style.background = color;
+  toast.classList.add('visible');
+  setTimeout(() => toast.classList.remove('visible'), 2500);
+}
+
+// ─── PASTE PARSER ───
+const PATTERNS = [
+  { id: 'revenue', regex: /מכירות|הכנסות/, label: 'מכירות' },
+  { id: 'cogs_opening', regex: /מלאי\s*פתיחה/, label: 'מלאי פתיחה' },
+  { id: 'cogs_purchases', regex: /קניות/, label: 'קניות' },
+  { id: 'cogs_outsourcing', regex: /עבודות\s*חוץ|עבודות.חוץ/, label: 'עבודות חוץ' },
+  { id: 'cogs_labor', regex: /עלות\s*עובדי\s*יצור|עובדי\s*יצור/, label: 'עובדי יצור' },
+  { id: 'cogs_closing', regex: /מלאי\s*סגירה/, label: 'מלאי סגירה', absolute: true },
+  { id: 'fix_rent', regex: /שכ.{0,2}ד|שכירות/, label: 'שכירות' },
+  { id: 'fix_cleaning', regex: /(אחזקה.*נקיון|אחזקה.*ניקיון|ניקיון)/, label: 'ניקיון' },
+  { id: 'fix_vehicle', regex: /אחזקת\s*רכב|רכב/, label: 'רכב' },
+  { id: 'fix_property', regex: /ארנונה/, label: 'ארנונה' },
+  { id: 'fix_phone', regex: /(דואר.*תקשורת|תקשורת.*סלולר|סלולר|טלפון)/, label: 'תקשורת' },
+  { id: 'fix_utilities', regex: /חשמל.*(מים|ומים)|חשמל|מים/, label: 'חשמל ומים' },
+  { id: 'fix_legal', regex: /משפטיות|עו.{0,2}ד/, label: 'משפטיות' },
+  { id: 'fix_office', regex: /משרדיות/, label: 'משרדיות' },
+  { id: 'fix_experts', regex: /מומחים|יועצים/, label: 'מומחים' },
+  { id: 'fix_taxes', regex: /(מיסים|אגרות|דמי\s*חבר)/, label: 'מיסים ואגרות' },
+  { id: 'fix_marketing', regex: /פרסום|שיווק/, label: 'פרסום' },
+  { id: 'fix_professional', regex: /שירותים\s*מקצועיים|רואה\s*חשבון|רו.{0,2}ח/, label: 'שירותים מקצועיים' },
+  { id: 'fix_salary_emp', regex: /שכר\s*עובדים|עלות\s*שכר\s*עובדים/, label: 'שכר עובדים' },
+  { id: 'fix_salary_mgmt', regex: /שכר\s*הנהלה|עלות\s*שכר\s*הנהלה|הנהלה/, label: 'שכר הנהלה' },
+  { id: 'fix_insurance', regex: /ביטוח/, label: 'ביטוח' },
+  { id: 'fix_finance', regex: /מימון|ריבית|עמלות\s*בנק/, label: 'מימון' },
+];
+
+function extractNumber(line) {
+  // Match numbers like 1,234,567 / 1234.56 / -100 / (1,000)
+  const matches = line.match(/[-(]?[\d,]+(?:\.\d+)?[)]?/g);
+  if (!matches) return null;
+  const nums = matches.map(m => {
+    const neg = /^\(.*\)$/.test(m);
+    const cleaned = m.replace(/[(),]/g, '');
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? null : (neg ? -n : n);
+  }).filter(n => n !== null && Math.abs(n) >= 100); // ignore small numbers (row indexes etc)
+  if (!nums.length) return null;
+  // Return the largest absolute value
+  return nums.reduce((a, b) => Math.abs(b) > Math.abs(a) ? b : a);
+}
+
+function parsePaste() {
+  const text = document.getElementById('pasteArea').value;
+  if (!text.trim()) {
+    showToast('הדבק טקסט קודם', 'var(--danger)');
+    return;
+  }
+  const lines = text.split(/\r?\n/);
+  const found = [];
+  const used = new Set();
+  for (const pat of PATTERNS) {
+    for (const line of lines) {
+      if (pat.regex.test(line) && !used.has(line)) {
+        const n = extractNumber(line);
+        if (n !== null) {
+          const val = pat.absolute ? Math.abs(n) : n;
+          document.getElementById(pat.id).value = val;
+          found.push(`${pat.label}: ${val.toLocaleString('he-IL')} ₪`);
+          used.add(line);
+          break;
+        }
+      }
+    }
+  }
+  const result = document.getElementById('parseResult');
+  if (found.length) {
+    result.innerHTML = `<strong>✓ זוהו ${found.length} סעיפים:</strong> ${found.join(' • ')}`;
+    result.classList.add('visible');
+    compute();
+    showToast(`זוהו ${found.length} סעיפים בהצלחה`);
+  } else {
+    result.innerHTML = '<strong>⚠ לא זוהו סעיפים.</strong> נסה לבדוק שכל שורה כוללת שם סעיף בעברית והסכום באותה שורה.';
+    result.classList.add('visible');
+    showToast('לא זוהו סעיפים', 'var(--danger)');
+  }
+}
+
+function clearPaste() {
+  document.getElementById('pasteArea').value = '';
+  document.getElementById('parseResult').classList.remove('visible');
+}
+
+function loadDemo() {
+  const demo = `דוח רווח והפסד — ינואר–מאי
+
+מכירות                  220,000
+עלות המכר:
+מלאי פתיחה               30,000
+קניות                   72,000
+עבודות חוץ              56,000
+מלאי סגירה              20,000
+
+הוצאות קבועות:
+שכ"ד                    30,000
+אחזקה וניקיון           8,000
+אחזקת רכב               21,000
+ארנונה                  6,000
+דואר ותקשורת            2,000
+חשמל ומים               10,000
+משפטיות                 30,000
+משרדיות                 2,500
+מומחים                  2,000
+מיסים ואגרות            2,000
+פרסום                   2,500
+שירותים מקצועיים        1,000`;
+  document.getElementById('pasteArea').value = demo;
+  parsePaste();
+}
+
+// ─── CALC ENGINE ───
+const ids = ['months','vat','revenue','cogs_opening','cogs_purchases','cogs_outsourcing','cogs_labor','cogs_other','cogs_closing',
+  'fix_rent','fix_cleaning','fix_vehicle','fix_property','fix_phone','fix_utilities','fix_legal','fix_office',
+  'fix_experts','fix_taxes','fix_marketing','fix_professional','fix_salary_emp','fix_salary_mgmt',
+  'fix_insurance','fix_finance','fix_other','target_profit','target_bonus','target_added',
+  'weeks','workdays','avgprice'];
+
+ids.forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('input', compute);
+});
+
+function val(id) {
+  const v = parseFloat(document.getElementById(id).value);
+  return isNaN(v) ? 0 : v;
+}
+
+function fmt(n) {
+  if (!isFinite(n) || isNaN(n)) return '—';
+  return Math.round(n).toLocaleString('he-IL') + ' ₪';
+}
+function fmtPct(n) {
+  if (!isFinite(n) || isNaN(n)) return '—';
+  return (n * 100).toFixed(1) + '%';
+}
+function fmtNum(n, d = 1) {
+  if (!isFinite(n) || isNaN(n)) return '—';
+  return n.toLocaleString('he-IL', { maximumFractionDigits: d });
+}
+
+function compute() {
+  const months = Math.max(val('months'), 1);
+  const vat = val('vat') / 100;
+  const revenue = val('revenue');
+  const cogs = val('cogs_opening') + val('cogs_purchases') + val('cogs_outsourcing') +
+               val('cogs_labor') + val('cogs_other') - val('cogs_closing');
+  const fixed = val('fix_rent') + val('fix_cleaning') + val('fix_vehicle') + val('fix_property') +
+                val('fix_phone') + val('fix_utilities') + val('fix_legal') + val('fix_office') +
+                val('fix_experts') + val('fix_taxes') + val('fix_marketing') + val('fix_professional') +
+                val('fix_salary_emp') + val('fix_salary_mgmt') + val('fix_insurance') +
+                val('fix_finance') + val('fix_other');
+
+  const gp = revenue - cogs;
+  const gpPct = revenue > 0 ? gp / revenue : 0;
+  const monthlyRev = revenue / months;
+  const monthlyFixed = fixed / months;
+  const breakeven = gpPct > 0 ? monthlyFixed / gpPct : NaN;
+  const gap = monthlyRev - breakeven;
+  const vatTotal = breakeven * (1 + vat);
+
+  // Target
+  const tProfit = val('target_profit');
+  const tBonus = val('target_bonus');
+  const tAdded = val('target_added');
+  const target = isNaN(breakeven) ? NaN : breakeven + (tProfit + tBonus + tAdded) / gpPct;
+
+  // KPIs
+  document.getElementById('kpi_be').textContent = fmt(breakeven);
+  document.getElementById('kpi_rev').textContent = fmt(monthlyRev);
+  document.getElementById('kpi_gp').textContent = fmtPct(gpPct);
+  document.getElementById('kpi_vat').textContent = fmt(vatTotal);
+
+  const gapEl = document.getElementById('kpi_gap');
+  gapEl.textContent = fmt(gap);
+  gapEl.className = 'kpi-value ' + (gap >= 0 ? 'success' : 'danger');
+  document.getElementById('kpi_gap_sub').textContent = gap >= 0 ? '✓ מעל נקודת האיזון' : '✗ מתחת — דרושה פעולה';
+
+  // Periods
+  const weeks = Math.max(val('weeks'), 1);
+  const workdays = Math.max(val('workdays'), 1);
+  const avgprice = Math.max(val('avgprice'), 1);
+
+  document.getElementById('per_m').textContent = fmt(breakeven);
+  document.getElementById('per_w').textContent = fmt(breakeven / weeks);
+  document.getElementById('per_d').textContent = fmt(breakeven / workdays);
+  document.getElementById('per_m_txn').textContent = fmtNum(breakeven / avgprice, 1) + ' עסקאות';
+  document.getElementById('per_w_txn').textContent = fmtNum(breakeven / weeks / avgprice, 1) + ' עסקאות';
+  document.getElementById('per_d_txn').textContent = fmtNum(breakeven / workdays / avgprice, 1) + ' עסקאות';
+
+  // Target
+  document.getElementById('kpi_target').textContent = fmt(target);
+  document.getElementById('kpi_target_sub').textContent = isNaN(target) ? 'נדרש רווח גולמי חיובי' :
+    `${fmt(target / workdays)} ביום, ${fmt(target / weeks)} בשבוע`;
+
+  // ─── INSIGHTS ───
+  // 1: current status
+  const ins1 = document.getElementById('insight1');
+  const ins1Body = document.getElementById('insight1_body');
+  ins1.className = 'insight ' + (gap >= 0 ? 'success' : 'danger');
+  let i1 = '';
+  if (gap >= 0) {
+    i1 += `<div>• אתה <strong>מעל נקודת האיזון בכ-${fmt(gap)}</strong> לחודש. זו כרית הביטחון שלך.</div>`;
+    i1 += `<div>• השלב הבא: לעבור לתכנון יעד רווח — הזן בקטע "תכנון יעד" למטה ותראה את המחזור הנדרש.</div>`;
+  } else {
+    i1 += `<div>• חסרים <strong>${fmt(Math.abs(gap))}</strong> מחזור חודשי כדי לכסות הוצאות. דרושה פעולה מיידית.</div>`;
+    i1 += `<div>• 3 מנופים מיידיים: (1) להעלות מחירים  (2) להוריד עלות מכר  (3) לקצץ הוצאה קבועה אחת גדולה.</div>`;
+  }
+  if (gpPct > 0) {
+    const sensitivity1pct = Math.abs(monthlyFixed / gpPct - monthlyFixed / (gpPct + 0.01));
+    i1 += `<div>• אחוז הרווח הגולמי שלך הוא <strong>${fmtPct(gpPct)}</strong> — כל שיפור של 1% מוריד את נקודת האיזון בכ-${fmt(sensitivity1pct)}.</div>`;
+  }
+  ins1Body.innerHTML = i1;
+
+  // 2: daily target
+  const i2 = `<div>• יעד יומי מוחשי הוא הכלי הניהולי הכי חזק. בסוף יום עבודה שאל: "עמדתי במספר היומי?"</div>` +
+             `<div>• ${fmtNum(breakeven / workdays / avgprice, 1)} עסקאות ביום — אם נראה לא ריאלי, צריך להעלות את מחיר העסקה הממוצע (אפסל, מוצרים משלימים).</div>`;
+  document.getElementById('insight2_body').innerHTML = i2;
+
+  // 3: target translation
+  let i3 = '';
+  if (isNaN(target)) {
+    i3 = '<div>• הזן רווח גולמי חיובי כדי לראות את היעד.</div>';
+  } else {
+    const diff = target - monthlyRev;
+    i3 += `<div>• פער מהמצב הנוכחי: <strong>${fmt(diff)}</strong> לחודש — זה מה שצריך להוסיף.</div>`;
+    if (tProfit > 0) {
+      i3 += `<div>• זכור: ברווח של 15,000 ₪ נטו ביד עצמאי צריך 25–32 אלף ₪ רווח לפני מס. ייעוץ עם רואה חשבון פעם אחת — יחסוך הרבה.</div>`;
+    }
+    if (Math.abs(diff) > monthlyRev * 0.3 && diff > 0) {
+      i3 += `<div>• הפער גדול מ-30% מהמחזור — שווה לבדוק קודם הורדת הוצאות לפני שדוחפים מכירות.</div>`;
+    }
+  }
+  document.getElementById('insight3_body').innerHTML = i3;
+
+  // 4: sensitivity insight
+  let i4 = '<div>• ירוק = נקודת איזון יורדת (טוב לעסק). אדום = עולה.</div>';
+  if (gpPct >= 0.5) {
+    i4 += '<div>• עם רווח גולמי גבוה (>50%) — הצירוף הרגיש ביותר אצלך הוא <strong>קיצוץ הוצאות קבועות</strong>.</div>';
+  } else if (gpPct > 0 && gpPct < 0.3) {
+    i4 += '<div>• עם רווח גולמי נמוך (<30%) — <strong>שיפור 1-2% ברווח הגולמי שווה יותר מקיצוץ של 10% בהוצאות</strong>.</div>';
+  } else {
+    i4 += '<div>• מצב מאוזן — שני המנופים (הוצאות ורווח גולמי) שווי ערך. תתחיל מהקל לביצוע.</div>';
+  }
+  document.getElementById('insight4_body').innerHTML = i4;
+
+  // ─── SENSITIVITY TABLE ───
+  buildSensitivity(monthlyFixed, gpPct, breakeven);
+}
+
+function buildSensitivity(monthlyFixed, gpPct, current) {
+  const gpDeltas = [-0.03, -0.02, -0.01, 0, 0.01, 0.02, 0.03];
+  const expDeltas = [-0.20, -0.10, -0.05, 0, 0.05, 0.10, 0.20];
+  const table = document.getElementById('sensTable');
+  let html = '<thead><tr><th>הוצאות \\ רווח גולמי</th>';
+  for (const d of gpDeltas) html += `<th>${d === 0 ? 'נוכחי' : (d > 0 ? '+' : '') + (d * 100).toFixed(0) + '%'}</th>`;
+  html += '</tr></thead><tbody>';
+  for (const ed of expDeltas) {
+    html += `<tr><td class="label">${ed === 0 ? 'נוכחי' : (ed > 0 ? '+' : '') + (ed * 100).toFixed(0) + '%'}</td>`;
+    for (const gd of gpDeltas) {
+      const newFixed = monthlyFixed * (1 + ed);
+      const newGp = gpPct + gd;
+      const be = newGp > 0 ? newFixed / newGp : NaN;
+      let cls = '';
+      if (ed === 0 && gd === 0) cls = 'cell-current';
+      else if (!isNaN(be) && be < current) cls = 'cell-good';
+      else if (!isNaN(be) && be > current) cls = 'cell-bad';
+      html += `<td class="${cls}">${fmt(be).replace(' ₪','')}</td>`;
+    }
+    html += '</tr>';
+  }
+  html += '</tbody>';
+  table.innerHTML = html;
+}
+
+function resetAll() {
+  if (!confirm('לאפס את כל הנתונים?')) return;
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = el.defaultValue || 0;
+  });
+  compute();
+  showToast('הנתונים אופסו');
+}
+
+function exportJSON() {
+  const data = {};
+  ids.forEach(id => { data[id] = val(id); });
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'break-even-data.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('הנתונים יוצאו לקובץ');
+}
+
+// initial compute
+if (sessionStorage.getItem('be_auth') === '1') compute();
+</script>
+
+</body>
+</html>
