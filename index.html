@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.min.js"></script>
 <style>
   :root {
     --purple-50: #FAF5FF;
@@ -620,9 +621,12 @@
 חשמל ומים      10,000
 ארנונה          6,000"></textarea>
       <div class="paste-actions">
+        <button class="btn-primary" onclick="document.getElementById('pdfInput').click()">📄 העלה PDF</button>
         <button class="btn-primary" onclick="parsePaste()">🔍 זהה ומלא נתונים</button>
         <button class="btn-secondary" onclick="clearPaste()">נקה</button>
         <button class="btn-secondary" onclick="loadDemo()">טען דוגמה</button>
+        <input type="file" id="pdfInput" accept="application/pdf" style="display:none">
+        <span id="pdfStatus" style="font-size:13px;color:var(--purple-700);font-weight:500;"></span>
       </div>
       <div class="parse-result" id="parseResult"></div>
     </section>
@@ -923,6 +927,56 @@ function parsePaste() {
 function clearPaste() {
   document.getElementById('pasteArea').value = '';
   document.getElementById('parseResult').classList.remove('visible');
+}
+
+// ─── PDF UPLOAD ───
+if (window.pdfjsLib) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.0.379/pdf.worker.min.js';
+}
+document.getElementById('pdfInput').addEventListener('change', handlePdf);
+
+async function handlePdf(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const statusEl = document.getElementById('pdfStatus');
+  if (!window.pdfjsLib) {
+    statusEl.textContent = '⚠ ספריית PDF לא נטענה — בדוק חיבור לאינטרנט';
+    return;
+  }
+  statusEl.textContent = '⏳ מעבד את הקובץ...';
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let allText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const items = content.items.filter(it => it.str && it.str.trim());
+      // Group by y-coordinate (line), then sort RTL within line
+      const lines = {};
+      for (const item of items) {
+        const y = Math.round(item.transform[5]);
+        if (!lines[y]) lines[y] = [];
+        lines[y].push({ x: item.transform[4], str: item.str });
+      }
+      // Sort y descending (top of page first)
+      const ys = Object.keys(lines).map(Number).sort((a, b) => b - a);
+      for (const y of ys) {
+        // Sort items within line by x descending (RTL: right→left)
+        const lineItems = lines[y].sort((a, b) => b.x - a.x);
+        allText += lineItems.map(it => it.str).join(' ') + '\n';
+      }
+      allText += '\n';
+    }
+    document.getElementById('pasteArea').value = allText;
+    statusEl.textContent = `✓ נטענו ${pdf.numPages} עמודים`;
+    parsePaste();
+    setTimeout(() => { statusEl.textContent = ''; }, 5000);
+  } catch (err) {
+    statusEl.textContent = '✗ שגיאה בעיבוד ה-PDF: ' + err.message;
+    console.error(err);
+  }
+  e.target.value = ''; // allow re-upload of same file
 }
 
 function loadDemo() {
